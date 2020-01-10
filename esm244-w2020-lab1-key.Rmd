@@ -48,6 +48,11 @@ Source: Fisheries Statistics Division of the NOAA Fisheries
 Attach (load) packages with `library()`:
 
 ```{r, message = FALSE, warning = FALSE}
+#install.packages("tidyverse")
+#install.packages("janitor")
+#install.packages("here")
+#install.packages("kableExtra")
+#install.packages("blogdown")
 
 library(tidyverse)
 library(here)  

@@ -1,0 +1,100 @@
+---
+title: "Lab#1"
+author: "Tyler Cobian"
+date: "1/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(kableExtra)
+
+```
+Read in the data file for the NOAA fisheries
+```{r, echo=FALSE, include=FALSE}
+us_landings<- read_csv(here("data", "noaa_fisheries.csv"))
+
+```
+Now make a tidy version of the data frame
+```{r}
+landings_tidy<- us_landings %>%
+  janitor::clean_names() %>%# the :: just states which package the function is in 
+  mutate(state = str_to_lower(state),# naming the new column the same name of an existing colum, will override the old column
+         afs_name = str_to_lower(afs_name)) %>% 
+  mutate(dollars_usd = parse_number(dollars_usd))# parse_number will drop and none numeric character from a number
+```
+Let's get some info for only salmon
+```{r}
+salmon_landings<- landings_tidy %>% 
+  mutate(afs_clean = str_remove(afs_name, pattern = "aggregate")) %>% # got ride of any "aggregate"
+  filter(str_detect(afs_clean, pattern = "salmon")) %>% # only keep anything with the name salmon
+  separate(afs_clean, into = c("group", "species"), sep = ", ") #breaks up the group and species of the fish into different columns, "sep = " tells R where to seperate the str
+ 
+```
+Find some grouped summary data:
+Find annual total US landings and dollar value (summing across all states) for each type of salmon using group_by() and summarise() functions
+```{r}
+salmon_summary<- salmon_landings %>% 
+  group_by(year, species) %>% 
+  summarize(
+    tot_landings = sum(landings_pounds),
+    tot_value = sum(dollars_usd)
+  )
+
+```
+Now we will make a graph for this data
+```{r}
+salmon_landings_graph<- ggplot(data = salmon_summary, aes(x = year, y = tot_landings))+
+  geom_line(aes(color = species))+
+  theme_get()
+salmon_landings_graph
+```
+Now we will export our graph with ggsave
+```{r}
+ggsave(plot = salmon_landings_graph, 
+       here("figures", "Us_Sallmon_TC.jpg"), 
+       height = 5,
+       width = 8)
+# ggsave will save export and image
+# here() will twll it where to save the image
+# you can also manipulate the type of file to save it as and  the height and width
+
+```
+Make a nice kable table
+```{r}
+salmon_first_5<- salmon_summary %>% 
+  head(5)
+salmon_first_5
+```
+Use kable to make a better table
+```{r}
+kable(salmon_first_5) %>% 
+  kable_styling(bootstrap_options = "striped",
+                full_width = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
